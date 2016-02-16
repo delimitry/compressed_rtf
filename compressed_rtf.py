@@ -14,9 +14,9 @@ from cStringIO import StringIO
 __all__ = ['decompress', 'compress']
 
 INIT_DICT = (
-    '{\\rtf1\\ansi\\mac\\deff0\\deftab720{\\fonttbl;}{\\f0\\fnil \\'
-    'froman \\fswiss \\fmodern \\fscript \\fdecor MS Sans SerifSymbolArialTimes'
-    ' New RomanCourier{\\colortbl\\red0\\green0\\blue0\r\n\\par \\pard\\plain\\'
+    '{\\rtf1\\ansi\\mac\\deff0\\deftab720{\\fonttbl;}{\\f0\\fnil \\froman \\'
+    'fswiss \\fmodern \\fscript \\fdecor MS Sans SerifSymbolArialTimes New '
+    'RomanCourier{\\colortbl\\red0\\green0\\blue0\r\n\\par \\pard\\plain\\'
     'f0\\fs20\\b\\i\\u\\tab\\tx'
 )
 
@@ -45,9 +45,9 @@ def decompress(data):
     raw_size = struct.unpack('<I', in_stream.read(4))[0]
     comp_type = in_stream.read(4)
     crc_value = struct.unpack('<I', in_stream.read(4))[0]
+    # get only data
+    contents = StringIO(in_stream.read(comp_size - 12))
     if comp_type == COMPRESSED:
-        # get only data
-        contents = StringIO(in_stream.read(comp_size - 12))
         # check CRC
         if crc_value != crc32(contents.read()):
             raise Exception('CRC is invalid! The file is corrupt!')

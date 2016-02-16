@@ -20,6 +20,12 @@ class Test(unittest.TestCase):
         self.assertEqual(
             decompress(data),
             '{\\rtf1\\ansi\\ansicpg1252\\pard hello world}\r\n')
+        # test raw decompression
+        data = '.\x00\x00\x00"\x00\x00\x00MELA \xdf\x12\xce{\\rtf1\\ansi\\an' \
+            'sicpg1252\\pard test}'
+        self.assertEqual(
+            decompress(data),
+            '{\\rtf1\\ansi\\ansicpg1252\\pard test}')
 
     def test_crc32(self):
         """
