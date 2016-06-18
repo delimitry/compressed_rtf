@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf8 -*-
 """
-Module for CRC32 сalculation
+Module for CRC32 calculation
 """
 
 from cStringIO import StringIO
