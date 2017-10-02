@@ -190,7 +190,7 @@ def _find_longest_match(init_dict, stream, write_offset):
     dict_offset = 0
     # find the first char
     while True:
-        if init_dict[dict_index] == char:
+        if init_dict[dict_index % MAX_DICT_SIZE] == char:
             match_len += 1
             # if found longest match
             if match_len <= 17 and match_len > longest_match_len:
