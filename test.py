@@ -68,6 +68,16 @@ class Test(unittest.TestCase):
         """
         data = '{\\rtf1\\ansi\\mac\\deff0\\deftab720'
         self.assertEqual(decompress(compress(data, compressed=True)), data)
+        
+    def test_hither_and_thither_long(self):
+        """
+        Test decompression of compressed data larger than 4096
+        """
+        data = '{\\rtf1\\ansi\\ansicpg1252\\pard hello world'
+        while len(data) < 4096:
+            data += "testtest"
+        data += "}"
+        self.assertEqual(decompress(compress(data, compressed=True)), data)
 
 
 if __name__ == '__main__':
