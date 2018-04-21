@@ -26,6 +26,17 @@ class Test(unittest.TestCase):
         self.assertEqual(
             decompress(data),
             b'{\\rtf1\\ansi\\ansicpg1252\\pard test}')
+        # test < 16 bytes long data exception
+        with self.assertRaises(Exception):
+            decompress(b'')
+        with self.assertRaises(Exception):
+            decompress(b'0123456789abcde')
+        # test unknown compression type exception
+        with self.assertRaises(Exception):
+            decompress(b'\x10\x00\x00\x00\x11\x00\x00\x00ABCD\xff\xff\xff\xff')
+        # test invalid CRC exception
+        with self.assertRaises(Exception):
+            decompress(b'\x10\x00\x00\x00\x11\x00\x00\x00LZFu\xff\xff\xff\xff')
 
     def test_crc32(self):
         """
@@ -75,8 +86,8 @@ class Test(unittest.TestCase):
         """
         data = b'{\\rtf1\\ansi\\ansicpg1252\\pard hello world'
         while len(data) < 4096:
-            data += b"testtest"
-        data += b"}"
+            data += b'testtest'
+        data += b'}'
         self.assertEqual(decompress(compress(data, compressed=True)), data)
 
 
