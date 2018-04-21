@@ -10,10 +10,6 @@ https://msdn.microsoft.com/en-us/library/cc463890(v=exchg.80).aspx
 import struct
 import sys
 from crc32 import crc32
-# try:
-#     from cStringIO import StringIO
-# except ImportError:
-#     from io import StringIO
 from io import BytesIO
 
 __all__ = ['decompress', 'compress']
