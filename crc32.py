@@ -4,7 +4,7 @@
 Module for CRC32 calculation
 """
 
-from cStringIO import StringIO
+from io import BytesIO
 
 __all__ = ['crc32']
 
@@ -80,7 +80,7 @@ def crc32(data):
     """
     Calculate CRC32 from given data bytes
     """
-    stream = StringIO(data)
+    stream = BytesIO(data)
     crc_value = 0x00000000
     while True:
         char = stream.read(1)

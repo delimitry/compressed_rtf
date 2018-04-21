@@ -8,23 +8,30 @@ https://msdn.microsoft.com/en-us/library/cc463890(v=exchg.80).aspx
 """
 
 import struct
+import sys
 from crc32 import crc32
-from cStringIO import StringIO
+# try:
+#     from cStringIO import StringIO
+# except ImportError:
+#     from io import StringIO
+from io import BytesIO
 
 __all__ = ['decompress', 'compress']
 
+PY3 = sys.version_info[0] == 3
+
 INIT_DICT = (
-    '{\\rtf1\\ansi\\mac\\deff0\\deftab720{\\fonttbl;}{\\f0\\fnil \\froman \\'
-    'fswiss \\fmodern \\fscript \\fdecor MS Sans SerifSymbolArialTimes New '
-    'RomanCourier{\\colortbl\\red0\\green0\\blue0\r\n\\par \\pard\\plain\\'
-    'f0\\fs20\\b\\i\\u\\tab\\tx'
+    b'{\\rtf1\\ansi\\mac\\deff0\\deftab720{\\fonttbl;}{\\f0\\fnil \\froman \\'
+    b'fswiss \\fmodern \\fscript \\fdecor MS Sans SerifSymbolArialTimes New '
+    b'RomanCourier{\\colortbl\\red0\\green0\\blue0\r\n\\par \\pard\\plain\\'
+    b'f0\\fs20\\b\\i\\u\\tab\\tx'
 )
 
 INIT_DICT_SIZE = 207
 MAX_DICT_SIZE = 4096
 
-COMPRESSED = 'LZFu'
-UNCOMPRESSED = 'MELA'
+COMPRESSED = b'LZFu'
+UNCOMPRESSED = b'MELA'
 
 
 def decompress(data):
@@ -33,20 +40,23 @@ def decompress(data):
     """
     # set init dict
     init_dict = list(INIT_DICT)
-    init_dict += ' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE)
+    init_dict += b' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE)
     if len(data) < 16:
         raise Exception('Data must be at least 16 bytes long')
     write_offset = INIT_DICT_SIZE
-    output_buffer = ''
+    output_buffer = b''
     # make stream
-    in_stream = StringIO(data)
+    in_stream = BytesIO(data)
+
     # read compressed RTF header
     comp_size = struct.unpack('<I', in_stream.read(4))[0]
     raw_size = struct.unpack('<I', in_stream.read(4))[0]
     comp_type = in_stream.read(4)
     crc_value = struct.unpack('<I', in_stream.read(4))[0]
+
     # get only data
-    contents = StringIO(in_stream.read(comp_size - 12))
+    contents = BytesIO(in_stream.read(comp_size - 12))
+
     if comp_type == COMPRESSED:
         # check CRC
         if crc_value != crc32(contents.read()):
@@ -59,7 +69,7 @@ def decompress(data):
                 break
             control = '{0:08b}'.format(ord(val))
             # check bits from LSB to MSB
-            for i in xrange(1, 9):
+            for i in range(1, 9):
                 if control[-i] == '1':
                     # token is reference (16 bit)
                     val = contents.read(2)
@@ -74,10 +84,10 @@ def decompress(data):
                         end = True
                         break
                     actual_length = length + 2
-                    for step in xrange(actual_length):
+                    for step in range(actual_length):
                         read_offset = (offset + step) % MAX_DICT_SIZE
                         char = init_dict[read_offset]
-                        output_buffer += char
+                        output_buffer += bytes([char]) if PY3 else char
                         init_dict[write_offset] = char
                         write_offset = (write_offset + 1) % MAX_DICT_SIZE
                 else:
@@ -86,7 +96,7 @@ def decompress(data):
                     if not val:
                         break
                     output_buffer += val
-                    init_dict[write_offset] = val
+                    init_dict[write_offset] = ord(val) if PY3 else val
                     write_offset = (write_offset + 1) % MAX_DICT_SIZE
     elif comp_type == UNCOMPRESSED:
         return contents.read(raw_size)
@@ -99,20 +109,20 @@ def compress(data, compressed=True):
     """
     Compress `data` with `compressed` flag
     """
-    output_buffer = ''
+    output_buffer = b''
     # set init dict
-    init_dict = list(INIT_DICT + ' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE))
+    init_dict = list(INIT_DICT + b' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE))
     write_offset = INIT_DICT_SIZE
     # compressed
     if compressed:
         comp_type = COMPRESSED
         # make stream
-        in_stream = StringIO(data)
+        in_stream = BytesIO(data)
         # init params
         control_byte = 0
         control_bit = 1
         token_offset = 0
-        token_buffer = ''
+        token_buffer = b''
         match_len = 0
         longest_match = 0
         while True:
@@ -146,7 +156,7 @@ def compress(data, compressed=True):
                 else:
                     # character is not found in dictionary
                     if longest_match == 0:
-                        init_dict[write_offset] = char
+                        init_dict[write_offset] = ord(char) if PY3 else char
                         write_offset = (write_offset + 1) % MAX_DICT_SIZE
                     # update params
                     control_byte |= 0 << control_bit - 1
@@ -163,7 +173,7 @@ def compress(data, compressed=True):
                     control_byte = 0
                     control_bit = 1
                     token_offset = 0
-                    token_buffer = ''
+                    token_buffer = b''
     else:
         # if uncompressed - copy data to output
         comp_type = UNCOMPRESSED
@@ -190,13 +200,13 @@ def _find_longest_match(init_dict, stream, write_offset):
     dict_offset = 0
     # find the first char
     while True:
-        if init_dict[dict_index % MAX_DICT_SIZE] == char:
+        if init_dict[dict_index % MAX_DICT_SIZE] == (ord(char) if PY3 else char):
             match_len += 1
             # if found longest match
             if match_len <= 17 and match_len > longest_match_len:
                 dict_offset = dict_index - match_len + 1
                 # add to dictionary and update longest match
-                init_dict[write_offset] = char
+                init_dict[write_offset] = ord(char) if PY3 else char
                 write_offset = (write_offset + 1) % MAX_DICT_SIZE
                 longest_match_len = match_len
             # read the next char
