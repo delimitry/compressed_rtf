@@ -1,5 +1,9 @@
 # compressed_rtf
 
+[![Build Status](https://travis-ci.org/delimitry/compressed_rtf.svg?branch=master)](https://travis-ci.org/delimitry/compressed_rtf)
+[![Coverage Status](https://coveralls.io/repos/github/delimitry/compressed_rtf/badge.svg?branch=master)](https://coveralls.io/github/delimitry/compressed_rtf?branch=master)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/delimitry/compressed_rtf/blob/master/LICENSE)
+
 Compressed Rich Text Format (RTF) compression worker in Python
 
 Description:
