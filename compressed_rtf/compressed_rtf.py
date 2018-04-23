@@ -9,7 +9,7 @@ https://msdn.microsoft.com/en-us/library/cc463890(v=exchg.80).aspx
 
 import struct
 import sys
-from crc32 import crc32
+from compressed_rtf.crc32 import crc32
 from io import BytesIO
 
 __all__ = ['decompress', 'compress']
