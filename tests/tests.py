@@ -2,8 +2,8 @@
 #-*- coding: utf8 -*-
 
 import unittest
-from compressed_rtf import compress, decompress
-from crc32 import crc32
+from compressed_rtf.compressed_rtf import compress, decompress
+from compressed_rtf.crc32 import crc32
 
 
 class Test(unittest.TestCase):

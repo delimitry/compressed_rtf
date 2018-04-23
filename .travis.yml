@@ -4,8 +4,9 @@ python:
   - "3.5"
   - "3.6"
 install:
+  - pip install .
   - pip install coveralls
 script:
-  - coverage run --source=compressed_rtf test.py
+  - coverage run --source=compressed_rtf setup.py test
 after_success:
   - coveralls
