@@ -7,7 +7,6 @@ Setup file, used to install and test 'compressed_rtf'
 import compressed_rtf
 from setuptools import setup
 
-
 setup(
     name='compressed_rtf',
     version=compressed_rtf.__version__,
