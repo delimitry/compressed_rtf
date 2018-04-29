@@ -8,6 +8,6 @@ https://msdn.microsoft.com/en-us/library/cc463890(v=exchg.80).aspx
 """
 
 __title__ = 'compressed_rtf'
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 __author__ = 'Dmitry Alimov'
 __license__ = 'MIT'
