@@ -121,7 +121,7 @@ def decompress(data):
     if len(data) < 16:
         raise Exception('Data must be at least 16 bytes long')
     write_offset = INIT_DICT_SIZE
-    output_buffer = b''
+    output_buffer = BytesIO()
     # make stream
     in_stream = BytesIO(data)
 
@@ -164,7 +164,10 @@ def decompress(data):
                     for step in range(actual_length):
                         read_offset = (offset + step) % MAX_DICT_SIZE
                         char = init_dict[read_offset]
-                        output_buffer += bytes([char]) if PY3 else char
+                        if PY3:
+                            output_buffer.write(bytes([char]))
+                        else:
+                            output_buffer.write(char)
                         init_dict[write_offset] = char
                         write_offset = (write_offset + 1) % MAX_DICT_SIZE
                 else:
@@ -172,14 +175,14 @@ def decompress(data):
                     val = contents.read(1)
                     if not val:
                         break
-                    output_buffer += val
+                    output_buffer.write(val)
                     init_dict[write_offset] = ord(val) if PY3 else val
                     write_offset = (write_offset + 1) % MAX_DICT_SIZE
     elif comp_type == UNCOMPRESSED:
         return contents.read(raw_size)
     else:
         raise Exception('Unknown type of RTF compression!')
-    return output_buffer
+    return output_buffer.getvalue()
 
 
 def _find_longest_match(init_dict, stream, write_offset):
