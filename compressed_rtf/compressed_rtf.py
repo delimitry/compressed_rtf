@@ -164,7 +164,10 @@ def decompress(data):
                     for step in range(actual_length):
                         read_offset = (offset + step) % MAX_DICT_SIZE
                         char = init_dict[read_offset]
-                        output_buffer.write(bytes([char])) if PY3 else char
+                        if PY3:
+                            output_buffer.write(bytes([char]))
+                        else:
+                            output_buffer.write(char)
                         init_dict[write_offset] = char
                         write_offset = (write_offset + 1) % MAX_DICT_SIZE
                 else:
