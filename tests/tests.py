@@ -21,7 +21,7 @@ class Test(unittest.TestCase):
             decompress(data),
             b'{\\rtf1\\ansi\\ansicpg1252\\pard hello world}\r\n')
         # test raw decompression
-        data = b'.\x00\x00\x00"\x00\x00\x00MELA \xdf\x12\xce{\\rtf1\\ansi\\an' \
+        data = b'.\x00\x00\x00"\x00\x00\x00MELA\x00\x00\x00\x00{\\rtf1\\ansi\\an' \
             b'sicpg1252\\pard test}'
         self.assertEqual(
             decompress(data),
@@ -60,7 +60,7 @@ class Test(unittest.TestCase):
         # test uncompressed
         self.assertEqual(
             compress(data, compressed=False),
-            b'7\x00\x00\x00+\x00\x00\x00MELA\x03\xa3n}{\\rtf1\\ansi\\ansicpg'
+            b'7\x00\x00\x00+\x00\x00\x00MELA\x00\x00\x00\x00{\\rtf1\\ansi\\ansicpg'
             b'1252\\pard hello world}\r\n')
 
     def test_compression_repeated_tokens(self):
