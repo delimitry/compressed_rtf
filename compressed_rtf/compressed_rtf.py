@@ -100,14 +100,15 @@ def compress(data, compressed=True):
                     control_bit = 1
                     token_offset = 0
                     token_buffer = b''
+        crc_value = struct.pack('<I', crc32(output_buffer))
     else:
         # if uncompressed - copy data to output
         comp_type = UNCOMPRESSED
         output_buffer = data
+        crc_value = struct.pack('<I', 0x00000000)
     # write compressed RTF header
     comp_size = struct.pack('<I', len(output_buffer) + 12)
     raw_size = struct.pack('<I', len(data))
-    crc_value = struct.pack('<I', crc32(output_buffer))
     return comp_size + raw_size + comp_type + crc_value + output_buffer
 
 
@@ -179,6 +180,9 @@ def decompress(data):
                     init_dict[write_offset] = ord(val) if PY3 else val
                     write_offset = (write_offset + 1) % MAX_DICT_SIZE
     elif comp_type == UNCOMPRESSED:
+        # check CRC
+        if crc_value != 0x00000000:
+            raise Exception('CRC is invalid! Must be 0x00000000!')
         return contents.read(raw_size)
     else:
         raise Exception('Unknown type of RTF compression!')
