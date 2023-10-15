@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-*- coding: utf8 -*-
 """
 Compressed Rich Text Format (RTF) worker
