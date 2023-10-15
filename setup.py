@@ -16,8 +16,6 @@ setup(
     license='MIT',
     keywords='compressed-rtf lzfu mela rtf',
     url='https://github.com/delimitry/compressed_rtf',
-    packages=['compressed_rtf'],
-    test_suite='tests',
     zip_safe=False,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
