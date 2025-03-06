@@ -4,18 +4,24 @@
 Setup file, used to install and test 'compressed_rtf'
 """
 
-import compressed_rtf
+import os
 from setuptools import setup
 
+about = {}
+here = os.path.abspath(os.path.dirname(__file__))
+
+with open(os.path.join(here, "compressed_rtf", "__version__.py"), "r", encoding = "utf-8") as f:
+    exec(f.read(), about)
+
 setup(
-    name='compressed_rtf',
-    version=compressed_rtf.__version__,
-    author='Dmitry Alimov',
-    description='Compressed Rich Text Format (RTF) compression and decompression package',
-    long_description=compressed_rtf.__doc__.strip(),
-    license='MIT',
+    name=about["__title__"],
+    version=about["__version__"],
+    author=about["__author__"],
+    description=about["__description__"],
+    long_description=about["__long_description__"],
+    license=about["__license__"],
     keywords='compressed-rtf lzfu mela rtf',
-    url='https://github.com/delimitry/compressed_rtf',
+    url=about["__url__"],
     zip_safe=False,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
