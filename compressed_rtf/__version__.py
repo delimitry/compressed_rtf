@@ -1,5 +1,5 @@
 __title__ = 'compressed_rtf'
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 __author__ = 'Dmitry Alimov'
 __license__ = 'MIT'
 __description__ = 'Compressed Rich Text Format (RTF) compression and decompression package'
