@@ -35,7 +35,7 @@ jobs:
         id: prepare_version_file
         shell: bash
         run: >-
-          sed -r -e "s/.*'(.*)'/\1/" compressed_rtf/__version__.py > .version
+          grep "__version__" compressed_rtf/version.py | cut -d "=" -f2 | tr -d "' " > .version
 
       - name: Use latest released action
         id: validate_new_version

@@ -34,4 +34,4 @@ classifiers = [
 Homepage = "https://github.com/delimitry/compressed_rtf"
 
 [tool.setuptools.dynamic]
-version = { attr = "compressed_rtf.__version__.__version__" }
+version = { attr = "compressed_rtf.version.__version__" }
