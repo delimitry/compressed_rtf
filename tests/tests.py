@@ -1,4 +1,4 @@
-#-*- coding: utf8 -*-
+# -*- coding: utf8 -*-
 
 import unittest
 from compressed_rtf.compressed_rtf import compress, decompress

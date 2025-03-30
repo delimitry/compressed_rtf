@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 61.0"]
+requires = ["setuptools >= 77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,6 +8,7 @@ dynamic = ["version"]
 description = "Compressed Rich Text Format (RTF) compression and decompression package"
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE*"]
 authors = [
     { name = "Dmitry Alimov" },
 ]
@@ -33,4 +34,4 @@ classifiers = [
 Homepage = "https://github.com/delimitry/compressed_rtf"
 
 [tool.setuptools.dynamic]
-version = { attr = "compressed_rtf.__version__.__version__" }
+version = { attr = "compressed_rtf.version.__version__" }
