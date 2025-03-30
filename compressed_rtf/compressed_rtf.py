@@ -1,4 +1,4 @@
-#-*- coding: utf8 -*-
+# -*- coding: utf8 -*-
 """
 Compressed Rich Text Format (RTF) worker
 
@@ -29,6 +29,10 @@ COMPRESSED = b'LZFu'
 UNCOMPRESSED = b'MELA'
 
 
+def char_to_int(val):
+    return ord(val) if PY3 else val
+
+
 def compress(data, compressed=True):
     """
     Compress `data` using RTF compression algorithm
@@ -48,10 +52,8 @@ def compress(data, compressed=True):
         control_bit = 1
         token_offset = 0
         token_buffer = b''
-        match_len = 0
-        longest_match = 0
         while True:
-            # find longest match
+            # find the longest match
             dict_offset, longest_match, write_offset = \
                 _find_longest_match(init_dict, in_stream, write_offset)
             char = in_stream.read(longest_match if longest_match > 1 else 1)
@@ -76,12 +78,12 @@ def compress(data, compressed=True):
                     token_offset += 2
                     # add dict reference
                     dict_ref = (dict_offset & 0xfff) << 4 | (
-                        longest_match - 2) & 0xf
+                            longest_match - 2) & 0xf
                     token_buffer += struct.pack('>H', dict_ref)
                 else:
                     # character is not found in dictionary
                     if longest_match == 0:
-                        init_dict[write_offset] = ord(char) if PY3 else char
+                        init_dict[write_offset] = char_to_int(char)
                         write_offset = (write_offset + 1) % MAX_DICT_SIZE
                     # update params
                     control_byte |= 0 << control_bit - 1
@@ -89,7 +91,6 @@ def compress(data, compressed=True):
                     token_offset += 1
                     # add literal
                     token_buffer += char
-                longest_match = 0
                 if control_bit > 8:
                     # add to output
                     output_buffer += struct.pack('B', control_byte)
@@ -117,7 +118,7 @@ def decompress(data):
     """
     # set init dict
     init_dict = list(INIT_DICT)
-    init_dict += b' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE)
+    init_dict += list(b' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE))
     if len(data) < 16:
         raise Exception('Data must be at least 16 bytes long')
     write_offset = INIT_DICT_SIZE
@@ -203,13 +204,13 @@ def _find_longest_match(init_dict, stream, write_offset):
     dict_offset = 0
     # find the first char
     while True:
-        if init_dict[dict_index % MAX_DICT_SIZE] == (ord(char) if PY3 else char):
+        if init_dict[dict_index % MAX_DICT_SIZE] == char_to_int(char):
             match_len += 1
-            # if found longest match
-            if match_len <= 17 and match_len > longest_match_len:
+            # if found the longest match
+            if longest_match_len < match_len <= 17:
                 dict_offset = dict_index - match_len + 1
-                # add to dictionary and update longest match
-                init_dict[write_offset] = ord(char) if PY3 else char
+                # add to dictionary and update the longest match
+                init_dict[write_offset] = char_to_int(char)
                 write_offset = (write_offset + 1) % MAX_DICT_SIZE
                 longest_match_len = match_len
             # read the next char
