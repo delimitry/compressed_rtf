@@ -1,0 +1,199 @@
+---
+# yamllint disable rule:line-length
+# yamllint disable rule:truthy
+
+name: Build Feature Branch
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+
+  validate_new_version:
+    name: Validate new version
+    runs-on: ubuntu-latest
+    outputs:
+      planned_version: ${{ steps.validate_new_version.outputs.planned_version }}
+      version_file_exists: ${{ steps.validate_new_version.outputs.version_file_exists }}
+      tag_hash: ${{ steps.validate_new_version.outputs.tag_hash }}
+      can_create: ${{ steps.validate_new_version.outputs.can_create }}
+      tag_exists: ${{ steps.validate_new_version.outputs.tag_exists }}
+      branch_name: ${{ steps.validate_new_version.outputs.branch_name }}
+      underscored_branch_name: ${{ steps.generate_tag_from_branch.outputs.underscored_branch_name }}
+
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Workaround the version file format
+        id: prepare_version_file
+        shell: bash
+        run: >-
+          grep "__version__" compressed_rtf/version.py | cut -d "=" -f2 | tr -d "' " > .version
+
+      - name: Use latest released action
+        id: validate_new_version
+        uses: reinvented-stuff/validate-version-action@1.2.0
+        with:
+          version_filename: ".version"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          fail_on_error: false
+
+
+  test_with_unittest:
+    name: Test with unittest
+    runs-on: ubuntu-latest
+    outputs:
+      job_status: ${{ job.status }}
+    env:
+      APP_NAME: "compressed_rtf"
+
+    steps:
+
+      - name: Check out this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python3
+        id: setup_python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Prepare environment
+        id: prepare_test_env
+        shell: bash
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install setuptools wheel
+
+      - name: Run tests
+        id: run_tests
+        shell: bash
+        run: >-
+          python3 -m unittest
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        id: upload_test_artifacts
+        if: always()
+        with:
+          name: "${{ env.APP_NAME }}_${{ github.run_id }}"
+          path: |
+            unittest_*.txt
+            unittest_*.html
+
+          if-no-files-found: warn
+          retention-days: 90
+
+
+  lint:
+    name: Linters and such
+    runs-on: ubuntu-latest
+    outputs:
+      job_status: ${{ job.status }}
+    env:
+      APP_NAME: "compressed_rtf"
+
+    steps:
+
+      - name: Check out this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python3
+        id: setup_python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Prepare environment
+        id: prepare_lint_env
+        shell: bash
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install flake8 pylint
+
+      - name: Run pylint
+        id: run_pylint
+        continue-on-error: true
+        shell: bash
+        run: >-
+          python3 -m pylint "${APP_NAME}"
+
+      - name: Run flake8
+        id: run_flake8
+        continue-on-error: true
+        shell: bash
+        run: >-
+          python3 -m flake8 "${APP_NAME}"
+
+      - name: Final decision on linters
+        id: final_decision
+        shell: bash
+        run: |-
+          echo "run_pylint: ${{ steps.run_pylint.outcome }}"
+          echo "run_flake8: ${{ steps.run_flake8.outcome }}"
+
+          if [[ "${{ steps.run_pylint.outcome }}" != "success" ]] || [[ "${{ steps.run_flake8.outcome }}" != "success" ]]; then
+            echo "Failing the linters job" >&2
+            exit 1
+          fi
+
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    outputs:
+      job_status: ${{ job.status }}
+    env:
+      APP_NAME: "compressed_rtf"
+
+    steps:
+
+      - name: Check out this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python3
+        id: setup_python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Prepare environment
+        id: prepare_build_env
+        shell: bash
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install build
+
+      - name: Build
+        id: run_build
+        shell: bash
+        run: >-
+          python3 -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        id: upload_build_artifacts
+        if: always()
+        with:
+          name: "${{ env.APP_NAME }}_${{ github.run_id }}"
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+          if-no-files-found: warn
+          retention-days: 90
+
+...
