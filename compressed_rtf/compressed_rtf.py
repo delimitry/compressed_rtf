@@ -30,6 +30,7 @@ UNCOMPRESSED = b'MELA'
 
 
 def char_to_int(val):
+    """Convert a character to its ordinal value."""
     return ord(val) if PY3 else val
 
 
@@ -70,36 +71,35 @@ def compress(data, compressed=True):
                 output_buffer += struct.pack('B', control_byte)
                 output_buffer += token_buffer[:token_offset]
                 break
+            if longest_match > 1:
+                # update params
+                control_byte |= 1 << control_bit - 1
+                control_bit += 1
+                token_offset += 2
+                # add dict reference
+                dict_ref = (dict_offset & 0xfff) << 4 | (
+                        longest_match - 2) & 0xf
+                token_buffer += struct.pack('>H', dict_ref)
             else:
-                if longest_match > 1:
-                    # update params
-                    control_byte |= 1 << control_bit - 1
-                    control_bit += 1
-                    token_offset += 2
-                    # add dict reference
-                    dict_ref = (dict_offset & 0xfff) << 4 | (
-                            longest_match - 2) & 0xf
-                    token_buffer += struct.pack('>H', dict_ref)
-                else:
-                    # character is not found in dictionary
-                    if longest_match == 0:
-                        init_dict[write_offset] = char_to_int(char)
-                        write_offset = (write_offset + 1) % MAX_DICT_SIZE
-                    # update params
-                    control_byte |= 0 << control_bit - 1
-                    control_bit += 1
-                    token_offset += 1
-                    # add literal
-                    token_buffer += char
-                if control_bit > 8:
-                    # add to output
-                    output_buffer += struct.pack('B', control_byte)
-                    output_buffer += token_buffer[:token_offset]
-                    # reset params
-                    control_byte = 0
-                    control_bit = 1
-                    token_offset = 0
-                    token_buffer = b''
+                # character is not found in dictionary
+                if longest_match == 0:
+                    init_dict[write_offset] = char_to_int(char)
+                    write_offset = (write_offset + 1) % MAX_DICT_SIZE
+                # update params
+                control_byte |= 0 << control_bit - 1
+                control_bit += 1
+                token_offset += 1
+                # add literal
+                token_buffer += char
+            if control_bit > 8:
+                # add to output
+                output_buffer += struct.pack('B', control_byte)
+                output_buffer += token_buffer[:token_offset]
+                # reset params
+                control_byte = 0
+                control_bit = 1
+                token_offset = 0
+                token_buffer = b''
         crc_value = struct.pack('<I', crc32(output_buffer))
     else:
         # if uncompressed - copy data to output
@@ -120,7 +120,7 @@ def decompress(data):
     init_dict = list(INIT_DICT)
     init_dict += list(b' ' * (MAX_DICT_SIZE - INIT_DICT_SIZE))
     if len(data) < 16:
-        raise Exception('Data must be at least 16 bytes long')
+        raise Exception('Data must be at least 16 bytes long')  # pylint: disable=broad-exception-raised
     write_offset = INIT_DICT_SIZE
     output_buffer = BytesIO()
     # make stream
@@ -138,14 +138,14 @@ def decompress(data):
     if comp_type == COMPRESSED:
         # check CRC
         if crc_value != crc32(contents.read()):
-            raise Exception('CRC is invalid! The file is corrupt!')
+            raise Exception('CRC is invalid! The file is corrupt!')  # pylint: disable=broad-exception-raised
         contents.seek(0)
         end = False
         while not end:
             val = contents.read(1)
             if not val:
                 break
-            control = '{0:08b}'.format(ord(val))
+            control = '{0:08b}'.format(ord(val))  # pylint: disable=consider-using-f-string
             # check bits from LSB to MSB
             for i in range(1, 9):
                 if control[-i] == '1':
@@ -182,10 +182,10 @@ def decompress(data):
     elif comp_type == UNCOMPRESSED:
         # check CRC
         if crc_value != 0x00000000:
-            raise Exception('CRC is invalid! Must be 0x00000000!')
+            raise Exception('CRC is invalid! Must be 0x00000000!')  # pylint: disable=broad-exception-raised
         return contents.read(raw_size)
     else:
-        raise Exception('Unknown type of RTF compression!')
+        raise Exception('Unknown type of RTF compression!')  # pylint: disable=broad-exception-raised
     return output_buffer.getvalue()
 
 
