@@ -11,11 +11,11 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Steps to reproduce the behavior, e.g.:
+1. The exact command(s) you ran.
+2. Input data.
+3. Output and/or error messages.
+4. The environment (Python version, OS, library version, etc).
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
